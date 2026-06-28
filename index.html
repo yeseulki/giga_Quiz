@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>기술·가정 시험 대비 퀴즈</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;height:100dvh;overflow:hidden}
+body{background:#fff8de;font-family:Inter,system-ui,sans-serif;color:#2a2a2a;display:flex;flex-direction:column;min-height:100vh}
+#home{flex:1;display:flex;flex-direction:column;align-items:center;padding:48px 24px 40px;overflow-y:auto}
+.home-title{font-size:24px;font-weight:600;color:#2a2a2a;margin-bottom:6px;letter-spacing:-.4px}
+.home-sub{font-size:14px;color:#5a7a78;margin-bottom:36px}
+.home-hint{font-size:12px;color:#7a9a98;margin-bottom:16px}
+.unit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:520px;margin-bottom:24px}
+.unit-card{background:#fff;border:1.5px solid #d4ede9;border-radius:10px;padding:18px 16px;cursor:pointer;transition:all .15s;text-align:left;user-select:none;position:relative}
+.unit-card:hover{border-color:#8ecec8;background:#f0faf9}
+.unit-card.selected{border-color:#3aada5;background:#e6f7f5;box-shadow:0 0 0 1px #3aada5}
+.unit-card.unit-all{grid-column:1/-1;background:#fff8de;border-color:#e0d080}
+.unit-card.unit-all:hover{background:#fffae8;border-color:#c0b040}
+.unit-card.unit-all.selected{border-color:#c0a000;background:#fffae0;box-shadow:0 0 0 1px #c0a000}
+.unit-num{font-size:11px;font-weight:600;color:#3aada5;letter-spacing:.6px;margin-bottom:5px}
+.unit-card.unit-all .unit-num{color:#a07800}
+.unit-name{font-size:14px;font-weight:500;color:#2a2a2a;line-height:1.4;margin-bottom:6px}
+.unit-count{font-size:12px;color:#7a9a98}
+.check-mark{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:#3aada5;display:none;align-items:center;justify-content:center}
+.unit-card.unit-all .check-mark{background:#c0a000}
+.unit-card.selected .check-mark{display:flex}
+.check-mark::after{content:'✓';font-size:11px;color:#fff;font-weight:600}
+.btn-start{width:100%;max-width:520px;background:#3aada5;color:#fff;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:background .15s;letter-spacing:-.2px}
+.btn-start:hover{background:#2d9089}
+.btn-start:disabled{background:#bde3de;color:#7ab8b4;cursor:not-allowed}
+#quiz{flex:1;display:none;flex-direction:column;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh}
+.quiz-header{background:#fff;border-bottom:1.5px solid #d4ede9;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.btn-exit{background:transparent;color:#5a7a78;border:1.5px solid #d4ede9;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s;flex-shrink:0}
+.btn-exit:hover{border-color:#8ecec8;color:#2a2a2a;background:#f0faf9}
+.progress-bar{flex:1;height:4px;background:#d4ede9;border-radius:2px}
+.progress-fill{height:4px;background:#3aada5;border-radius:2px;transition:width .3s}
+.progress-text{font-size:12px;color:#5a7a78;flex-shrink:0;min-width:48px;text-align:right}
+.score-badge{font-size:12px;color:#fff;background:#3aada5;border-radius:20px;padding:4px 12px;font-weight:600;flex-shrink:0}
+.quiz-scroll{flex:1;overflow-y:auto;padding:22px 20px 12px;background:#fff8de;-webkit-overflow-scrolling:touch}
+.section-divider{font-size:11px;color:#3aada5;letter-spacing:.6px;font-weight:600;margin-bottom:10px;padding-bottom:8px;border-bottom:1.5px solid #bde3de}
+.q-card{background:#fff;border:1.5px solid #d4ede9;border-radius:12px;padding:22px}
+.q-meta{font-size:11px;color:#7a9a98;margin-bottom:10px}
+.q-type-badge{display:inline-block;font-size:11px;font-weight:600;color:#fff;background:#3aada5;border-radius:20px;padding:2px 10px;margin-right:8px}
+.q-text{font-size:15px;line-height:1.75;color:#2a2a2a;margin-bottom:18px}
+.options{display:flex;flex-direction:column;gap:8px}
+.opt{background:#f8fffe;border:1.5px solid #d4ede9;border-radius:8px;padding:11px 14px;font-size:14px;color:#2a2a2a;cursor:pointer;text-align:left;transition:all .15s;line-height:1.6;width:100%}
+.opt:hover:not([disabled]){background:#e6f7f5;border-color:#8ecec8}
+.opt.correct{border-color:#3aada5;color:#1a6a65;background:#e0f5f2}
+.opt.wrong{border-color:#e07a7a;color:#8a2020;background:#fdf0f0}
+.opt.disabled{cursor:default}
+.opt.correct.disabled,.opt.wrong.disabled{opacity:1}
+.ox-row{display:flex;gap:10px}
+.ox-btn{flex:1;background:#f8fffe;border:1.5px solid #d4ede9;border-radius:8px;padding:14px;font-size:22px;font-weight:600;color:#5a7a78;cursor:pointer;transition:all .15s}
+.ox-btn:hover:not([disabled]){background:#e6f7f5;border-color:#8ecec8;color:#2a2a2a}
+.ox-btn.correct{border-color:#3aada5;color:#1a6a65;background:#e0f5f2}
+.ox-btn.wrong{border-color:#e07a7a;color:#8a2020;background:#fdf0f0}
+.ox-btn.disabled{cursor:default}
+.feedback{margin-top:12px;font-size:13px;line-height:1.7;padding:12px 14px;border-radius:8px;display:none}
+.feedback.show{display:block}
+.feedback.ok{border:1.5px solid #8ecec8;color:#1a6a65;background:#e6f7f5}
+.feedback.no{border:1.5px solid #e0aaaa;color:#8a2020;background:#fdf0f0}
+.num{color:#3aada5;margin-right:8px;font-weight:600}
+.quiz-nav{background:#fff;border-top:1.5px solid #d4ede9;padding:12px 20px;padding-bottom:max(12px, env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.btn-nav{background:#3aada5;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:background .15s}
+.btn-nav:hover:not(:disabled){background:#2d9089}
+.btn-nav:disabled{background:#bde3de;color:#7ab8b4;cursor:not-allowed}
+.btn-ghost{background:transparent;color:#5a7a78;border:1.5px solid #d4ede9;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s}
+.btn-ghost:hover:not(:disabled){color:#2a2a2a;border-color:#8ecec8;background:#f0faf9}
+.btn-ghost:disabled{opacity:.35;cursor:not-allowed}
+.result-card{background:#fff;border:1.5px solid #d4ede9;border-radius:12px;padding:32px 24px;text-align:center;margin:22px}
+.result-score{font-size:56px;font-weight:600;letter-spacing:-1.5px;color:#2a2a2a;margin:12px 0 4px}
+.result-label{font-size:13px;color:#7a9a98}
+.result-msg{font-size:15px;color:#5a7a78;margin:16px 0 24px;line-height:1.6}
+.wrong-review{margin-top:20px;text-align:left}
+.wrong-item{background:#fff8de;border:1.5px solid #e8e0a0;border-radius:8px;padding:14px;margin-top:8px}
+.wrong-q{font-size:13px;color:#5a5000;margin-bottom:5px;line-height:1.5}
+.wrong-ans{font-size:12px;color:#7a7a40}
+.wrong-ans span{color:#1a7a70;font-weight:500}
+.btn-result-main{width:100%;background:#3aada5;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;margin-bottom:8px;transition:background .15s}
+.btn-result-main:hover{background:#2d9089}
+.btn-result-sub{width:100%;background:transparent;color:#5a7a78;border:1.5px solid #d4ede9;border-radius:8px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;transition:all .15s}
+.btn-result-sub:hover{border-color:#8ecec8;background:#f0faf9}
+.save-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;user-select:none}
+.save-checkbox{width:18px;height:18px;accent-color:#3aada5;cursor:pointer;flex-shrink:0}
+.save-label{font-size:13px;color:#5a7a78}
+.unit-card.wrong-card{background:#fff8de;border-color:#e0d080;cursor:pointer}
+.unit-card.wrong-card:hover{background:#fffae8;border-color:#c0b040}
+.unit-card.wrong-card .unit-num{color:#a07800}
+.unit-card.wrong-card.disabled-card{background:#f5f5f5;border-color:#ddd;cursor:not-allowed;opacity:.5}
+</style>
+</head>
+<body>
+<div id="home">
+  <div class="home-title">기술·가정 시험 대비 퀴즈</div>
+  <div class="home-sub">강조 내용 기반</div>
+  <div class="home-hint">단원을 선택하세요 (복수 선택 가능)</div>
+  <div class="unit-grid" id="unit-grid"></div>
+  <button class="btn-start" id="btn-start" onclick="startQuiz()" disabled>단원을 선택하세요</button>
+</div>
+<div id="quiz">
+  <div class="quiz-header">
+    <button class="btn-exit" onclick="goHome()">← 나가기</button>
+    <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+    <span class="progress-text" id="ptext"></span>
+    <span class="score-badge" id="sbadge">0점</span>
+  </div>
+  <div class="quiz-scroll" id="quiz-scroll">
+    <div id="quiz-area"></div>
+  </div>
+  <div class="quiz-nav">
+    <button class="btn-ghost" id="btn-prev" onclick="go(-1)">← 이전</button>
+    <button class="btn-nav" id="btn-next" onclick="go(1)">다음 →</button>
+  </div>
+</div>
+<script>
+const ALL_Q=[
+// ── 1단원 ──
+{u:1,s:"가족 구조 변화",t:"객관식",q:"다음 중 현대 사회에서 가족 구조 변화의 원인으로 옳지 않은 것은?",opts:["저출산으로 인한 자녀 수 감소","결혼을 미루거나 독신으로 사는 남녀 증가","평균 수명 연장으로 인한 노인 단독 가구 증가","가족의 의미가 혈연에서 유대감으로 확대","4인 이상 대가족 가구의 지속적인 증가"],ans:4,ex:"4인 이상 가구는 감소하고 1인 가구는 증가하고 있다. 저출산, 독신 증가, 평균 수명 연장 등이 가족 구조 변화의 원인이다."},
+{u:1,s:"가족 구조 변화",t:"OX",q:"현대 사회에서 1인 가구는 감소하고 4인 이상 가구는 증가하는 추세이다.",ans:"X",ex:"현대 사회에서는 가족 구성원 수가 점점 줄어들어 4인 이상 가구는 감소하고 1인 가구는 계속 증가하고 있다."},
+{u:1,s:"가족 기능·인식 변화",t:"객관식",q:"현대 사회에서 가족의 기능 변화에 대한 설명으로 옳은 것은?",opts:["생산·교육 기능이 가족 내에서 더욱 강화되었다","애정 및 정서적 안정 기능은 경쟁이 치열한 현대 사회에서 사회 기관으로 이전되었다","자녀 출산 기능은 현대에도 가족만이 담당한다","생산과 교육 기능은 사회 기관으로 이전되었지만, 애정·정서적 안정 기능은 현대 사회에서 더욱 중요해지고 있다","모든 가족 기능이 사회 기관으로 이전되는 추세이다"],ans:3,ex:"생산·교육 등의 기능은 사회 기관으로 이전되었지만, 애정 및 정서적 안정 기능은 경쟁이 치열한 현대 사회에서 오히려 가족 안에서 더욱 중요해지고 있다."},
+{u:1,s:"가족 기능·인식 변화",t:"객관식",q:"전통 사회와 현대 사회의 가족 인식 변화를 비교한 것으로 옳지 않은 것은?",opts:["전통: 결혼은 누구나 해야 하는 것 / 현대: 결혼은 선택 사항","전통: 가문의 결합 강조 / 현대: 사랑과 신뢰 바탕의 개인 선택","전통: 이혼은 하지 않는 것이 좋다는 생각 지배 / 현대: 경우에 따라 이혼 가능","전통: 가부장이 수직적 서열 / 현대: 평등한 가족 관계가 이상적","전통: 아들의 역할이 중요 / 현대: 자녀 성별에 대한 차별 의식 여전히 존재"],ans:4,ex:"현대 사회에서는 자녀 출산도 부부의 합의를 통해 선택할 수 있고, 자녀의 성별에 대한 차별 의식이 존재하지 않는다."},
+{u:1,s:"가족 형태",t:"객관식",q:"다음 중 가족 형태와 설명이 바르게 연결되지 않은 것은?",opts:["한부모 가족 : 사별·이혼·별거 등으로 부모 중 한 사람과 미성년 자녀로 이루어진 가족","조손 가족 : 부모 없이 조부모와 손자녀로만 이루어진 가족","재혼 가족 : 배우자 한 명 이상이 다시 결혼하여 이루어진 가족","분거 가족 : 혈연관계가 없는 사람을 법적인 자녀로 맞이한 가족","다문화 가족 : 국제결혼, 국적, 인종, 문화 등이 서로 다른 사람들로 이루어진 가족"],ans:3,ex:"설명된 내용은 입양 가족에 해당한다. 분거 가족은 직장이나 학업 등을 위해 가족 구성원들이 서로 떨어져 사는 가족이다."},
+{u:1,s:"가족 형태",t:"객관식",q:"다음 중 확대 가족과 핵가족에 대한 설명으로 옳은 것은?",opts:["확대 가족은 부부와 그들의 미혼 자녀만으로 구성된 가족 형태이다","핵가족은 자녀가 결혼 후에도 부모와 같이 사는 가족 형태이다","전통 사회에서 가장 보편적인 가족 형태는 핵가족이었다","현대 사회에서는 가족의 규모가 축소되고 핵가족이 증가하였다","확대 가족과 핵가족 모두 현대 사회에서 점점 증가하고 있다"],ans:3,ex:"확대 가족은 자녀가 결혼 후에도 부모와 같이 사는 가족 형태이고, 핵가족은 부부와 그들의 미혼 자녀만으로 구성된 가족 형태이다. 전통 사회에서는 확대 가족이 가장 보편적이었으나, 현대 사회에서는 가족의 규모가 축소되고 핵가족이 증가하였다."},
+{u:1,s:"가족 내 역할 변화",t:"객관식",q:"건강 가정의 특징으로 옳지 않은 것은?",opts:["가족 구성원 개개인이 신체적·정신적으로 건강하다","가족 구성원이 서로 존중하고 협력하며 역할과 책임을 함께 나눈다","가족들끼리 서로 터놓고 자주 이야기하며 함께 많은 시간을 보낸다","위기가 닥쳤을 때 가족끼리 서로 의지하며 격려와 지원을 통해 극복해 나간다","갈등이 전혀 없고 항상 화목한 상태를 유지한다"],ans:4,ex:"건강 가정은 갈등이 없는 가정이 아니라, 문제가 발생했을 때 가족 구성원이 모두 협동하여 지혜롭게 해결해 나가는 힘을 가진 가정이다."},
+{u:1,s:"가족 내 역할 변화",t:"객관식",q:"현대 사회에서 나타나는 가족 내 역할 변화로 옳지 않은 것은?",opts:["부부는 집안일·자녀 양육·교육 등을 융통성 있게 분담한다","조부모는 손자녀 양육을 돕고 권위적 모습에서 벗어나 가족을 지지·격려한다","자녀는 집안일에 적극 참여하고 가족의 의사 결정에 민주적으로 참여한다","가족 내 의사 결정은 경제력이 높은 사람이 일방적으로 결정한다","부부는 의논하여 공동으로 의사 결정을 한다"],ans:3,ex:"현대 사회에서는 의사 결정을 할 때 경제력에 상관없이 부부가 함께 의논하여 공동으로 결정한다."},
+{u:1,s:"가족 내 역할 변화",t:"OX",q:"현대 사회에서 아버지와 자녀는 친구 같은 관계로 친밀성이 강조되며, 아버지와 어머니 모두 자녀 양육에 책임감을 가진다.",ans:"O",ex:"현대 가족 관계에서는 민주적이고 평등한 관계를 중요하게 여기며 아버지·어머니 모두 자녀 양육 책임을 가진다. 특히 아버지와 자녀는 친구 같은 관계로 친밀성이 강조된다."},
+{u:1,s:"부부·부모자녀·형제자매 관계",t:"객관식",q:"부부 관계에 대한 설명으로 옳지 않은 것은?",opts:["남녀 간의 사랑을 기초로 혼인을 함으로써 이루어지는 관계이다","다른 모든 가족 관계의 디딤돌이 되므로 지속적인 협력이 필요하다","자녀 수가 줄고 평균 수명이 늘어 부부가 함께하는 노년기가 길어졌다","맞벌이 부부가 늘어나는 오늘날에는 부부의 역할을 평등하게 수행해야 한다","부부 관계는 혈연으로 맺어지므로 절대 해소될 수 없다"],ans:4,ex:"부부 관계는 혈연이 아니라 사랑을 기초로 혼인을 통해 이루어지는 관계이다. 따라서 이혼 등으로 해소될 수 있으며, 부부 간의 이해와 협력이 필요하다."},
+{u:1,s:"부부·부모자녀·형제자매 관계",t:"객관식",q:"부모 자녀 관계에서 청소년기 갈등 해결 방법으로 가장 바람직한 것은?",opts:["부모가 자녀를 통제하고 일방적으로 지시한다","자녀가 부모의 의견을 무조건 따른다","부모는 자녀를 독립된 인격체로 인정하고, 자녀는 부모님 의견을 존중하며 열린 마음으로 대화한다","자녀가 완전히 독립하여 부모와의 관계를 끊는다","부모가 자녀의 모든 것을 결정해 준다"],ans:2,ex:"부모는 자녀를 독립된 인격체로 인정하고 이해해야 하며, 자녀는 부모님의 의견을 존중하며 열린 마음으로 대화하려는 자세를 가져야 한다."},
+{u:1,s:"부부·부모자녀·형제자매 관계",t:"객관식",q:"형제자매 관계에서 자연스럽게 터득할 수 있는 사회생활 능력으로 옳은 것을 모두 고른 것은?\n㉠ 협동하는 능력\n㉡ 경쟁하는 능력\n㉢ 양보하는 능력\n㉣ 타인을 일방적으로 지배하는 능력",opts:["㉠, ㉡","㉠, ㉡, ㉢","㉡, ㉢, ㉣","㉠, ㉢, ㉣","㉠, ㉡, ㉢, ㉣"],ans:1,ex:"형제자매는 협동과 경쟁을 반복적으로 겪으면서 사회생활에 필요한 능력을 자연스럽게 터득한다. 서로에게 놀이 친구, 교육자, 학습자, 보호자, 경쟁자 등 다양한 역할을 한다."},
+{u:1,s:"조부모 손자녀 관계",t:"객관식",q:"조부모 손자녀 관계에 대한 설명으로 옳지 않은 것은?",opts:["자녀가 결혼하여 그들의 자녀를 출산함으로써 형성되는 관계이다","오늘날 맞벌이 부부가 늘어나면서 손자녀를 직접 맡아 키우는 조부모들이 많아지고 있다","조부모는 가족의 역사와 전통을 세대 간에 전달하는 역할을 한다","조부모 손자녀 관계는 반드시 같이 살아야만 유지된다","손자녀는 조부모님을 공경하는 태도를 가지고 원활한 의사소통을 위해 노력해야 한다"],ans:3,ex:"조부모 손자녀 관계는 같이 살지 않더라도 유지되는 관계로, 조부모는 손자녀에게 정서적 지지와 격려를 주고 가족의 전통과 삶의 지혜를 전달한다."},
+{u:1,s:"양성평등 & 민주적 가족 관계",t:"객관식",q:"양성평등한 가족 관계를 형성하기 위한 방법으로 옳은 것을 모두 고른 것은?\n㉠ 성별에 따른 역할 구분에서 벗어나 상황에 따라 역할을 조절하고 공유\n㉡ 부부가 공동으로 자녀 양육과 가정 경제 등을 책임\n㉢ 성별의 차이가 아닌 소통을 통해 얻은 합리적인 기준으로 역할 분담\n㉣ 남성은 경제 활동, 여성은 가사만 담당하는 전통적 역할 고수",opts:["㉠, ㉡","㉡, ㉢","㉠, ㉡, ㉢","㉡, ㉢, ㉣","㉠, ㉡, ㉢, ㉣"],ans:2,ex:"양성평등한 가족 관계에서는 성별에 따른 역할 구분에서 벗어나 상황에 따라 유연하게 역할을 조절·공유하고, 소통을 통해 합리적으로 분담해야 한다."},
+{u:1,s:"양성평등 & 민주적 가족 관계",t:"객관식",q:"세대 간 민주적인 가족 관계에 대한 설명으로 옳지 않은 것은?",opts:["부모와 자녀, 조부모 등 다른 세대가 서로 존중하고 이해하는 관계이다","모든 가족 구성원의 의견이나 생각을 편견 없이 개방적으로 받아들이는 관계이다","가족 구성원들이 바람직한 가족 가치관이나 문화를 형성하도록 돕는다","조부모님과의 관계에서는 연령과 세대에서 오는 차이를 그대로 인정해야 한다","세대 간 의견 차이가 있을 경우 윗세대가 항상 최종 결정권을 가져야 한다"],ans:4,ex:"세대 간 민주적인 가족 관계에서는 특정 구성원이 일방적 결정권을 갖는 것이 아니라, 모든 가족 구성원이 공동의 책임 의식을 가지고 균형 잡힌 상호 작용을 해야 한다."},
+{u:1,s:"양성평등 & 민주적 가족 관계",t:"OX",q:"양성평등하고 세대 간의 민주적인 가족 관계를 통해 가족 구성원들은 가족의 위기나 문제 상황에 적극적으로 대처하고 건강 가정을 이룰 수 있다.",ans:"O",ex:"양성평등하고 세대 간 민주적인 가족 관계를 통해 가족 구성원들은 가족의 위기나 문제 상황에 적극적으로 대처하고 건강 가정을 이룰 수 있도록 노력해야 한다."},
+{u:1,s:"효과적인 의사소통",t:"객관식",q:"다음 중 '나' 전달법을 사용한 올바른 예는?",opts:["너 숙제 다 했어? 너 숙제 안 할 거야?","왜 그렇게 행동하는 거야? 너 정말 이상해.","네가 숙제를 하지 않고 텔레비전만 보고 있으니 내가 걱정이 되는구나.","너는 항상 늦게 들어와서 정말 문제야.","그런 행동은 잘못된 거야, 고쳐야 해."],ans:2,ex:"'나' 전달법은 '나'를 주어로 하여 자신의 생각과 감정을 전달하는 방법이다. 상대방을 비난하지 않고 자신의 감정을 솔직하게 전달한다."},
+{u:1,s:"효과적인 의사소통",t:"객관식",q:"다음 중 의사소통 방법과 설명이 바르게 연결되지 않은 것은?",opts:["개방형 질문하기 : '밥 먹었니?'보다 '무엇을 먹었니?'처럼 상대방이 더 많은 정보를 말하게 한다","적극적으로 경청하기 : 상대방이 어떤 마음이나 기분에서 이야기하는지 공감하고 질문하며 듣는다","눈 맞추기 : 상대방과 대화할 때 눈을 맞추면 관심을 표현할 수 있고 기분과 반응 정보도 얻는다","'나' 전달법 : 상대방의 행동을 직접 비난하고 평가하여 문제를 명확히 지적하는 방법","언어·비언어 표현 일치시키기 : 표정이나 몸짓 같은 비언어적 면도 중요한 의미를 차지한다"],ans:3,ex:"'나' 전달법은 상대방의 행동을 비난하거나 평가하지 않고 '나'를 주어로 하여 자신의 생각과 감정을 솔직하게 전달하는 방법이다."},
+{u:1,s:"효과적인 의사소통",t:"객관식",q:"다음 중 '개방형 질문'의 올바른 예는?",opts:["밥 먹었니?","학교 갔다 왔어?","오늘 기분이 좋아, 나빠?","오늘 어떤 일이 있었어?","그거 했어, 안 했어?"],ans:3,ex:"개방형 질문은 상대방이 더 많은 정보를 말하게 하여 생각이나 감정을 더 잘 알 수 있게 한다. '밥 먹었니?'(×) → '오늘 어떤 일이 있었어?'(O)처럼 개방적으로 질문한다."},
+{u:1,s:"효과적인 의사소통",t:"OX",q:"의사소통은 언어적인 면에만 초점을 두어야 하며, 표정이나 몸짓 같은 비언어적 표현은 의사소통에서 큰 의미를 차지하지 않는다.",ans:"X",ex:"대부분의 의사소통에서 표정이나 몸짓 같은 비언어적 면이 더 중요한 의미를 차지하는 경우가 많다. 언어적·비언어적 표현이 일치해야 효과적인 의사소통이 이루어진다."},
+{u:1,s:"효과적인 의사소통",t:"객관식",q:"가족 간의 갈등 해결 방법과 그 내용이 바르게 연결된 것은?",opts:["문제 확인하기 : 가족 구성원의 행동 변화를 기대하기보다 자신의 생각을 바꾸어 보려고 노력한다","인식 바꾸어 보기 : 가족 내에서 갈등을 일으키고 있는 문제를 확인한다","긍정적인 것에 초점 두기 : 부정적인 내용보다 긍정적인 것에 초점을 두고 의사소통한다","윈윈의 해결책 찾기 : 상대방이 갈등 상황을 어떻게 느끼는지 입장을 요약해서 말해 본다","상대방의 입장 요약하기 : 조금씩 양보하여 모두가 만족할 수 있는 방안을 찾는다"],ans:2,ex:"긍정적인 것에 초점 두기는 부정적인 내용으로 의사소통하기보다 긍정적인 것에 초점을 두고 의사소통하는 방법이다. 문제 확인하기(갈등 문제 파악), 인식 바꾸어 보기(자신의 생각 변화), 윈윈(모두 만족), 상대방 입장 요약(역지사지)과 구별해야 한다."},
+// ── 3단원 ──
+{u:3,s:"성적 의사결정 & 성폭력",t:"객관식",q:"주체적이고 책임감 있는 성적 의사 결정을 위해 고려해야 할 사항으로 옳지 않은 것은?",opts:["성 행동의 결과를 책임질 수 있는지 생각한다","성 행동에 대한 자신의 생각을 분명하게 표현한다","성 행동에 대한 상대방의 입장을 경청하고 존중한다","자신이 원하지 않는 성 행동을 상대방이 시도하면 거부할 수 없다","자신의 성적 의사 결정이 존중받아야 하는 만큼 다른 사람의 결정도 존중한다"],ans:3,ex:"자신이 원하지 않는 성 행동을 상대방이 일방적으로 시도한다면 거부할 수 있어야 한다. 주체적이고 책임감 있는 성적 의사 결정의 핵심은 자신의 결정권을 지키는 것이다."},
+{u:3,s:"성적 의사결정 & 성폭력",t:"객관식",q:"성폭력의 원인과 배경으로 옳지 않은 것은?",opts:["왜곡된 성 가치관과 성에 대한 잘못된 인식","상대방의 성적 자기결정권을 존중하지 않는 태도","성폭력에 적극적으로 개입하지 않는 사회 분위기","지속적인 성교육을 통한 올바른 성 지식 습득","폭력적인 성 표현을 담은 대중 매체의 영향"],ans:3,ex:"지속적인 성교육을 통한 올바른 성 지식 습득은 성폭력의 원인이 아니라 성폭력을 예방하기 위한 방법이다. 성폭력의 원인으로는 왜곡된 성 가치관, 상대방의 결정권 무시, 사회적 무관심, 대중 매체의 영향 등이 있다."},
+{u:3,s:"성적 의사결정 & 성폭력",t:"객관식",q:"성폭력 피해자가 받는 영향으로 옳지 않은 것은?",opts:["신체적 피해를 받는다","배신감, 불안감, 공포 등의 정신적 피해를 받는다","성폭력 피해는 피해자 개인에게만 영향을 미치고 사회적 문제는 되지 않는다","폭력이 학습되어 세대를 넘어 이어지거나 다른 폭력으로 옮겨갈 수 있다","가족 관계를 유지하기 어렵게 만든다"],ans:2,ex:"성폭력은 피해자의 신체적·정신적 피해뿐만 아니라 가족 관계에도 영향을 미치며, 폭력이 학습되어 다른 폭력으로 옮겨가는 등 사회적으로도 큰 문제가 될 수 있다."},
+{u:3,s:"성적 의사결정 & 성폭력",t:"객관식",q:"성폭력 가해자가 되지 않는 방법과 피해자가 되지 않는 방법이 바르게 구분된 것은?",opts:["가해자 방지: 불안이 느껴지는 상황에서 즉시 피한다 / 피해자 방지: 상대방의 침묵을 동의로 생각하지 않는다","가해자 방지: 신체 노출이나 성적인 행동을 찍어 공유하지 않는다 / 피해자 방지: '싫어요', '멈춰요'라고 분명하게 거절한다","가해자 방지: 거부 의사를 분명히 표현한다 / 피해자 방지: 상대방 신체에 대한 불필요한 신체 접촉을 하지 않는다","가해자 방지: 성 행동을 결정할 권리가 자신에게 있음을 인식한다 / 피해자 방지: 상대방의 동의 없이 성 행동을 하지 않는다","가해자 방지: 평소 자신의 생각과 느낌을 정확하게 표현한다 / 피해자 방지: 상대방의 '싫다'를 그대로 받아들여 즉시 멈춘다"],ans:1,ex:"가해자가 되지 않는 방법: 신체 노출·성적 행동 공유 금지, 상대방 침묵을 동의로 보지 않기, 즉시 멈추고 사과하기, 불필요한 신체 접촉 금지. 피해자가 되지 않는 방법: 불안 시 즉시 피하기, '싫어요'로 분명히 거절하기, 자신의 결정권 인식하기."},
+{u:3,s:"성적 의사결정 & 성폭력",t:"OX",q:"가벼운 성추행은 처음에 강하게 거부하지 않아도 상대방이 스스로 멈추므로 굳이 강하게 거부할 필요가 없다.",ans:"X",ex:"가벼운 성희롱과 성추행은 처음부터 강하게 거부하지 않으면 반복되고 점점 정도가 심해진다. 원하지 않는 성적인 대화나 신체적 접촉이 발생할 때는 분명하게 말과 행동으로 거절해야 한다."},
+{u:3,s:"가정 폭력 예방 & 대처",t:"객관식",q:"가정 폭력의 특성으로 옳지 않은 것은?",opts:["신체적·언어적·정신적·성적 폭력뿐만 아니라 경제적 통제와 방임도 포함된다","배우자 폭력, 아동 학대, 노인 학대, 형제 간 폭력으로 구분할 수 있다","가정 폭력은 외부로 잘 드러나지 않으며 반복적으로 나타난다","가정 폭력을 당한 피해자는 신체적 피해만 받고 정신적 피해는 없다","폭력의 범위가 점점 넓어지는 특성이 있다"],ans:3,ex:"가정 폭력으로 인한 피해자는 신체적 피해와 함께 배신감, 불안감, 공포 등의 정신적 피해를 받는다. 또한 사회적 관계와 행동에도 영향을 미친다."},
+{u:3,s:"가정 폭력 예방 & 대처",t:"객관식",q:"가정 폭력 예방 방법으로 옳지 않은 것은?",opts:["평소 폭력적인 말과 행동을 삼간다","가족들의 단점보다는 장점을 보고 가족끼리 서로 칭찬한다","어떤 상황에서도 폭력은 사용하지 않는다","자녀들에게 매를 들기 전에 다시 한번 생각한다","가정 폭력은 집안 문제이므로 외부에 알리지 않고 혼자 해결해야 한다"],ans:4,ex:"가정 폭력은 집안 문제로 숨기기보다 주변의 도움을 받아 신속하게 해결해야 한다. 또한 폭력적인 대중 매체를 규제하고 잘못된 사회 문화를 개선하는 사회적 노력도 필요하다."},
+{u:3,s:"가정 폭력 예방 & 대처",t:"객관식",q:"가정 폭력 발생 시 대처 방법으로 옳지 않은 것은?",opts:["가정폭력긴급전화(1366)나 경찰(112)에 신고하여 신속히 대처한다","경찰이 도착하면 가정 폭력을 당한 상황과 정도를 구체적으로 말한다","집에 머물 수 없다면 1366이나 가정 폭력 상담소의 도움을 받아 쉼터로 이동한다","가정 폭력은 가족 간의 일이므로 처음에는 지켜보다가 심해지면 신고한다","이웃, 친척, 선생님 등에게 알리고 도움을 요청한다"],ans:3,ex:"가정 폭력은 처음부터 강하게 조치를 취해야 하며, 작은 문제라도 초기에 상담과 교육을 병행하고 주변의 도움을 받아 신속하게 해결해야 한다."},
+{u:3,s:"가정 폭력 예방 & 대처",t:"객관식",q:"가정 폭력 피해자 지원 제도에 대한 설명으로 옳지 않은 것은?",opts:["상담 지원: 전화 상담을 받을 수 있도록 국번 없는 특수 전화 '1366'을 365일 24시간 운영","주거 지원: 장기적인 거주지를 원할 경우 심사를 거쳐 임대 주택 거주 가능","긴급 지원: 피해자와 생계를 함께하는 가족 구성원의 생계 유지가 어려운 경우 지원","무료 법률 지원: 피해자에 한해 관련 민사·가사 사건 무료 법률 상담 및 구조 신청 가능","쉼터 입소 지원: 피해자 누구나 즉시 입소 가능하며 기관 면접은 불필요하다"],ans:4,ex:"쉼터 입소 지원은 입소 희망자에 한해 각 기관과 면접 상담 후 입소가 가능하다. 즉시 입소가 되는 것이 아니라 면접 상담 과정이 필요하다."},
+{u:3,s:"가정 폭력 예방 & 대처",t:"OX",q:"가정 폭력 피해자는 한국가정법률상담소(1644-7077), 경찰(112), 응급 구조(119), 가정폭력긴급전화(1366) 등을 통해 도움을 받을 수 있다.",ans:"O",ex:"가정 폭력 대처 방법 중 공공 기관에 알리고 도움을 요청하는 방법으로 위의 번호들을 이용할 수 있다."},
+{u:3,s:"안전한 식품 선택",t:"객관식",q:"안전한 식품을 고르는 방법으로 옳지 않은 것은?",opts:["캔이나 용기 등의 포장이 파손되거나 오염된 것은 피한다","냉동식품 안에 얼음 알갱이가 있는 것은 녹았다가 언 것일 수 있으므로 구입하지 않는다","신선 식품은 신선도를, 가공식품은 식품 표시를 확인한다","냉장·냉동 식품을 고를 때에는 적절한 곳에 보관되어 있는지 확인한다","유통 기한이 지난 제품은 모두 상한 제품이므로 버려야 한다"],ans:4,ex:"'유통 기한이 지난 제품은 모두 상한 것'이라는 생각은 맞지 않는다. 각 식품마다 유통 기한을 확인해 날짜가 많이 남아 있는 것을 고르는 것이 중요하다."},
+{u:3,s:"안전한 식품 선택",t:"객관식",q:"식품 표시에서 확인해야 할 사항과 그 내용이 바르게 연결되지 않은 것은?",opts:["원재료 및 함량 확인 : 제품명, 원재료명 및 함량, 유통 기한, 제조 연월일 등을 알 수 있다","영양 성분 확인 : 고혈압이 걱정되면 나트륨을, 체중 조절에 관심이 있으면 열량을 확인한다","유통 기한 확인 : 제품이 만들어지고 나서 소비자에게 판매가 허용되는 기한이다","알레르기 유발 물질 표시 확인 : 우리나라에서는 달걀·우유·메밀·땅콩·대두 등의 알레르기 유발 물질을 표시한다","관능 평가 : 시각·청각·촉각·미각 등으로 식품을 평가하는 방법으로, 가공식품에만 적용된다"],ans:4,ex:"관능 평가는 시각·후각·촉각·미각 등으로 식품을 평가하는 방법으로, 농·수·축산물과 같이 별다른 표시 사항이 없는 식품들을 겉모양·냄새·단단한 정도 등을 통해 신선한 것을 구매할 때 사용한다. 청각은 관능 평가에 포함되지 않는다."},
+{u:3,s:"안전한 식품 선택",t:"객관식",q:"HACCP 의무 적용 식품이 아닌 것은?",opts:["어육 가공품","냉동 수산 식품(어류·연체류·조미 가공품)","빙과류","레토르트 식품","신선 채소류"],ans:4,ex:"HACCP 의무 적용 식품: 어육 가공품, 냉동 수산 식품, 냉동식품(피자류·만두류·면류), 빙과류, 비가열 음료, 레토르트 식품, 배추김치 등. 신선 채소류는 해당되지 않는다."},
+{u:3,s:"안전한 식품 선택",t:"객관식",q:"식품 국가 인증 마크와 설명이 바르게 연결된 것은?",opts:["유기농(ORGANIC) : 유기 합성 농약을 사용하지 않고 화학 비료는 권장량의 1/2 이하로 사용한 농산물","무농약(NON PESTICIDE) : 유기 합성 농약과 화학 비료를 사용하지 않고 재배한 농산물","GAP(우수관리인증) : 특정 지역의 우수 농산물과 그 가공품에 지역명을 표시하여 생산자와 소비자를 보호","지리표시(PGI) : 생산에서 판매까지 안전 관리 체계를 구축하여 소비자에게 안전한 농산물을 공급","전통식품 : 국내산 농수산물을 원료로 제조·가공하여 고유의 맛과 향·색을 내는 우수한 전통 식품의 품질을 인증"],ans:4,ex:"무농약은 유기 합성 농약을 사용하지 않고 화학 비료는 권장량의 1/3 이하로 사용한 농산물이다. GAP는 생산~판매 안전 관리 체계 구축 인증, 지리표시는 특정 지역 우수 농산물에 지역명 표시, 전통식품은 전통 식품 품질 인증이다."},
+{u:3,s:"식품 보관",t:"객관식",q:"식품의 변질 종류와 특징, 보관 방법이 바르게 연결된 것은?",opts:["변패 - 단백질의 변질 - 암모니아 악취 발생 - 냉장 보관","부패 - 지방의 변질 - 기름 찐 냄새 - 산소 차단·냉동 보관","산패 - 탄수화물의 변질 - 채소·과일 질 저하 - 냉장 보관","변패 - 탄수화물의 변질 - 채소·과일 등의 질이 저하됨 - 냉장 보관","부패 - 탄수화물의 변질 - 기름 찐 냄새 - 냉동 보관"],ans:3,ex:"변패(탄수화물 변질, 채소·과일 질 저하) → 냉장 보관. 부패(단백질 변질, 암모니아 악취 등) → 냉장 및 냉동 보관. 산패(지방 변질, 기름 찐 냄새) → 산소 차단·냉장 및 냉동 보관."},
+{u:3,s:"식품 보관",t:"객관식",q:"식품의 안전한 보관 방법으로 옳지 않은 것은?",opts:["냉동식품은 냉장 온도에서 해동시킨다","칼이나 도마 등의 조리 기구는 기열 식품용과 비기열 식품용으로 구분하여 사용한다","조리한 식품 및 부패하기 쉬운 식품은 냉장고에 4℃ 이하로 보관한다","보관할 때 익히지 않은 음식과 익힌 음식 간의 접촉을 피한다","냉장고, 냉동고를 맹신하여 식품을 오랫동안 보관해도 무방하다"],ans:4,ex:"냉장고와 냉동고를 맹신하면 안 된다. 또한 조리한 식품은 실온에 잠시 방치하지 않으며, 냉동식품은 냉장 온도에서 해동시키고, 익히지 않은 음식과 익힌 음식의 접촉을 피해야 한다."},
+{u:3,s:"식품 보관",t:"객관식",q:"식중독 예방을 위한 안전 수칙으로 옳은 것을 모두 고른 것은?\n㉠ 냉동식품은 냉장 온도에서 해동시킨다\n㉡ 칼·도마는 기열 식품용과 비기열 식품용으로 구분하여 사용한다\n㉢ 조리한 식품 및 부패하기 쉬운 식품은 냉장고에 4℃ 이하로 보관한다\n㉣ 조리한 식품은 실온에 오랫동안 두어도 괜찮다\n㉤ 냉장고, 냉동고를 맹신하지 않는다",opts:["㉠, ㉡, ㉢","㉡, ㉢, ㉤","㉠, ㉡, ㉢, ㉤","㉠, ㉢, ㉣","㉡, ㉢, ㉣, ㉤"],ans:2,ex:"㉣은 틀렸다. 조리한 식품을 실온에 장시간 방치하면 세균이 번식하여 식중독이 발생할 수 있다."},
+{u:3,s:"식품 보관",t:"OX",q:"식중독은 여름철에만 주로 발생하므로 봄과 가을에는 음식물 보관에 크게 신경 쓰지 않아도 된다.",ans:"X",ex:"식중독은 여름철뿐만 아니라 봄과 가을에도 많이 발생한다. 음식물을 보관·관리할 때 항상 주의해야 한다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"식사 계획을 하면 얻을 수 있는 이점으로 옳지 않은 것은?",opts:["영양의 균형을 이루는 식생활을 할 수 있다","식품 구입과 식사 준비에 드는 시간과 노력을 절감할 수 있다","비용을 절감할 수 있다","자동으로 모든 영양소가 충족된다","가족 구성원의 건강 상태와 기호를 고려한 식사를 준비할 수 있다"],ans:3,ex:"식사 계획을 하면 영양 균형, 시간·노력·비용 절감 등의 이점이 있다. 그러나 자동으로 모든 영양소가 충족되지는 않으며, 다양한 식품들을 적절하게 구성해야 영양 균형을 이룰 수 있다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"조리의 장점과 교차 오염에 대한 설명으로 옳지 않은 것은?",opts:["조리를 하면 소화가 잘 되고 영양소가 효율적으로 흡수된다","조리를 하면 식품의 맛, 색, 질감 등이 좋아져 식욕을 돋운다","조리를 하면 미생물, 독소 등이 제거되어 위생적으로 안전하고 저장성이 좋아진다","교차 오염은 세균이 조리 중 오염된 손·식품·조리 도구 등을 통해 오염되지 않은 식품으로 옮겨가는 것이다","조리 과정에서 모든 영양소가 더 많이 생성된다"],ans:4,ex:"조리 과정에서 영양소가 더 많이 생성되지는 않는다. 오히려 일부 영양소가 파괴될 수 있어, 시금치나물처럼 영양소 파괴를 최소화하는 조리법을 선택해야 한다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"조리 방법의 종류에 대한 설명으로 옳지 않은 것은?",opts:["데치기 : 끓는 물에 식품을 넣고 짧은 시간에 살짝 익히는 방법","찌기 : 뜨거운 수증기로 식품을 익히는 방법","끓이기 : 끓는 물에 식품을 넣고 가열하여 익히는 방법","조리기 : 식품에 양념을 넣고 가열하여 양념이 배어들게 익히는 방법","볶기 : 많은 양의 기름에 식품을 넣어 익히는 방법"],ans:4,ex:"볶기는 프라이팬에 기름을 두르고 달군 후 식품을 넣고 짧은 시간에 익히는 방법이다. 많은 양의 기름에 식품을 넣어 익히는 것은 '튀기기'이다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"잡곡밥을 지을 때 불 조절 순서로 옳은 것은?",opts:["약한 불 → 중간 불 → 센 불","센 불 → 약한 불 → 중간 불","중간 불 → 센 불 → 약한 불","센 불 → 중간 불 → 약한 불(뜸들이기)","중간 불 → 약한 불 → 센 불"],ans:3,ex:"잡곡밥은 센 불로 가열하다가 밥이 끓으면 중간 불로 줄이고, 물이 완전히 줄어들면 약한 불로 뜸을 들인다. 불을 끄고 5분 정도 두었다가 뚜껑을 열고 주걱으로 잘 뒤섞어 담는다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"소고기 미역국을 만들 때 올바른 첫 번째 조리 순서는?",opts:["마른 미역을 물에 불린다","소고기를 끓는 물에 넣고 바로 삶는다","소고기를 간장, 참기름, 후추로 양념해 두었다가 냄비에 볶는다","다진 마늘과 간장을 먼저 넣고 물을 붓는다","물을 먼저 끓인 후 마른 미역을 넣는다"],ans:0,ex:"소고기 미역국의 첫 번째 조리 순서는 마른 미역을 물에 불리는 것이다. (미역이 불면 부피가 5~10배 가량 증가하므로 양 조절에 주의한다.) 그 다음 소고기를 간장·참기름·후추로 양념해 냄비에 볶고, 불린 미역을 넣고 함께 볶다가 물을 부어 끓인다."},
+{u:3,s:"식사 계획 & 조리",t:"OX",q:"육수를 내는 것이 목적이라면 찬물부터 고기를 넣어 우려내고, 고기를 익히는 것이 목적이라면 끓는 물에 고기를 넣어야 영양분 손실을 막을 수 있다.",ans:"O",ex:"찬물부터 고기를 넣으면 고기 속 성분이 천천히 우러나 육수가 풍부해진다. 끓는 물에 고기를 넣으면 표면이 빨리 익어 내부 영양분이 빠져나가지 않는다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"시금치나물을 조리할 때 영양소 파괴를 최소화하기 위한 올바른 방법은?",opts:["찬물에 오래 데친다","끓는 물에 소금을 약간 넣고 뚜껑을 열어 단시간에 데친 후 찬물에 바로 헹군다","데친 후 실온에 방치한다","뚜껑을 닫고 오래 데친다","소금을 넣지 않고 오래 끓인다"],ans:1,ex:"시금치는 비타민 C가 열에 약하기 때문에 살짝 데쳐서 찬물에 바로 씻는다. 선명한 녹색을 유지하기 위해 끓는 물에 소금을 넣고 뚜껑을 열어 단시간에 데친다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"생채와 숙채에 대한 설명으로 옳은 것은?",opts:["생채 : 물에 데치거나 기름에 볶아 익혀서 무친 나물","숙채 : 익히지 않고 날로 무친 나물","생채 : 익히지 않고 날로 무친 나물 / 숙채 : 물에 데치거나 기름에 볶아 익혀서 무친 나물","생채와 숙채 모두 반드시 열을 가해야 한다","생채와 숙채의 차이는 양념에 있다"],ans:2,ex:"생채는 익히지 않고 날로 무친 나물이고, 숙채는 물에 데치거나 기름에 볶아 익혀서 무친 나물이다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"기름에 물이 들어가면 위험한 이유와 올바른 대처법은?",opts:["기름이 굳어버리므로 바로 불을 끈다","화상을 입을 수 있으므로 재료의 물기를 제거한 후 기름에 넣는다","기름 맛이 변하므로 기름을 바꾼다","조리 효율이 떨어지므로 물을 천천히 넣는다","기름이 넘칠 수 있으므로 냄비 뚜껑을 덮는다"],ans:1,ex:"기름에 물이 들어가면 기름이 튀어 화상을 입을 수 있다. 따라서 재료의 물기를 제거한 후 기름에 넣어야 한다."},
+{u:3,s:"식사 계획 & 조리",t:"객관식",q:"녹말의 호화에 대한 설명으로 옳은 것은?",opts:["녹말이 물을 만나면 부피가 줄어들고 딱딱해지는 현상이다","주성분이 녹말인 쌀에 물을 넣고 가열하면 녹말 사이로 물이 들어가면서 부피가 늘어나고 점성이 생기는 현상이다","호화가 진행되면 소화가 어려워진다","녹말의 호화는 냉각 시에만 일어난다","호화된 녹말은 맛이 나빠지고 소화가 잘 안 된다"],ans:1,ex:"녹말의 호화란 주성분이 녹말인 쌀에 물을 넣고 가열하면 녹말 사이로 물이 들어가면서 부피가 늘어나고 점성이 생기는 현상이다. 녹말이 호화되면 맛이 좋아지고 소화도 잘 된다. 잡곡밥에서 불을 끄고 5분 정도 두었다가 뚜껑을 열면 고슬고슬해지는 것도 호화와 관련이 있다."},
+// ── 4단원 ──
+{u:4,s:"저출산·고령화 & 가족 친화",t:"객관식",q:"저출산·고령 사회가 개인과 가정생활에 미치는 영향으로 옳지 않은 것은?",opts:["자녀 수가 줄어들면서 가족의 규모와 기능이 축소된다","자녀 독립 후 부부만 남는 시간이 길어지면서 부부 관계에 변화가 생긴다","노년기가 길어지는 반면 자립적인 노후의 필요성이 커진다","저출산·고령화로 인해 노인 부양 부담이 줄어들어 가족의 기능이 강화된다","고령 사회에서는 65세 이상 인구 비율이 전체 인구의 14% 이상인 사회를 말한다"],ans:3,ex:"저출산·고령화로 인해 노인을 부양하는 가족의 기능은 오히려 약해지고, 노인 부양의 부담이 확대된다."},
+{u:4,s:"저출산·고령화 & 가족 친화",t:"객관식",q:"건강가정지원센터에서 제공하는 4가지 프로그램으로 옳은 것은?",opts:["가족 돌봄·문화, 가족 상담, 가족 교육, 다양한 가족 지원","가족 상담, 의료 지원, 취업 지원, 법률 지원","가족 교육, 경제 지원, 주거 지원, 긴급 지원","가족 돌봄·문화, 가족 교육, 취업 지원, 의료 지원","가족 상담, 주거 지원, 법률 지원, 경제 지원"],ans:0,ex:"건강가정지원센터는 여성가족부가 시행하는 기관으로 가족 돌봄·문화, 가족 상담, 가족 교육, 다양한 가족 지원의 4가지 프로그램을 제공한다."},
+{u:4,s:"저출산·고령화 & 가족 친화",t:"객관식",q:"일·가정 양립을 위한 개인·가족의 노력과 사회·문화적 해결 방안이 바르게 구분된 것은?",opts:["개인·가족: 유연 근무제 도입 / 사회·문화: 가사 노동을 합리적으로 분담","개인·가족: 가족 구성원 모두가 가사 노동에 참여 / 사회·문화: 육아 휴직 제도 활성화","개인·가족: 야근 및 출장 줄이기 / 사회·문화: 일정의 우선순위를 정하여 효율적으로 처리","개인·가족: 직장 내 보육 시설 확충 / 사회·문화: 대화와 협력으로 가족 구성원 배려","개인·가족: 가족 친화 사업 활발히 전개 / 사회·문화: 가족 구성원 모두가 가사 노동에 참여"],ans:1,ex:"개인·가족의 노력: 대화와 협력으로 가족 구성원 이해·배려, 가사 노동 합리적 분담, 일정의 우선순위 설정, 가족 모두 가사 노동 참여. 사회·문화적 해결 방안: 유연 근무제·재택 근무, 육아 휴직 제도 활성화, 야근·출장 줄이기, 직장 내 보육 시설 확충, 가족 친화 사업 전개."},
+{u:4,s:"저출산·고령화 & 가족 친화",t:"객관식",q:"일·가정 양립 과정에서 발생하는 문제와 해결 방법이 바르게 연결되지 않은 것은?",opts:["가족 가치관의 갈등 → 원활한 의사소통을 통해 서로에 대한 기대를 조정","일정 갈등 → 여러 일들의 우선순위를 정하고 시간 관리 능력을 향상","경제생활 관리 문제 → 부부가 합의하여 가계부를 작성하고 현명한 소비 습관을 기름","자녀 양육 문제 → 자녀 양육은 어머니만의 책임이므로 어머니가 직장을 포기한다","가족 가치관의 갈등 → 가족 구성원 모두가 가사 노동에 참여하여 갈등을 해결"],ans:3,ex:"자녀 양육 문제는 부부가 함께 공동으로 참여하고 협력하는 태도를 갖는 것이 중요하다. 특히 아버지는 자녀 양육에 더 많은 관심을 기울여 양성평등한 부모의 역할을 수행해야 한다."},
+{u:4,s:"저출산·고령화 & 가족 친화",t:"OX",q:"가족 친화 인증 제도는 가족 친화 제도를 모범적으로 운영하는 기업 및 공공 기관을 심사하여 인증을 부여하고, 이를 통해 가족 친화적인 직장 문화를 조성한다.",ans:"O",ex:"가족 친화 인증 제도는 가족 친화 경영을 확산하여 가족 친화적인 직장 문화를 조성하고 근로자와 가족 구성원의 삶의 질을 향상시키는 제도이다."},
+// ── 8단원 ──
+{u:8,s:"생명기술 시스템",t:"객관식",q:"생명 기술 시스템에서 '과정' 단계를 순서대로 바르게 나열한 것은?",opts:["증식 → 성장 → 유지 → 수확","성장 → 증식 → 수확 → 유지","유지 → 증식 → 성장 → 수확","수확 → 성장 → 유지 → 증식","증식 → 수확 → 유지 → 성장"],ans:0,ex:"생명 기술 시스템의 과정 단계: 증식(생명체를 개발하고 재생산) → 성장(생명체를 잘 키우기) → 유지(적절한 환경 유지) → 수확(거두어들이기) 순이다."},
+{u:8,s:"생명기술 시스템",t:"객관식",q:"생명 기술 시스템의 '투입' 요소가 아닌 것은?",opts:["인적 자원","정보와 지식","증식","재료","자본"],ans:2,ex:"증식은 '과정' 단계에 해당한다. 투입에는 인적 자원, 정보와 지식, 재료, 에너지, 자본, 시간이 포함된다."},
+{u:8,s:"생명기술 시스템",t:"OX",q:"생명 기술 시스템에서 되먹임은 산출 단계 이후에만 이루어지며, 투입이나 과정 단계에서는 이루어질 수 없다.",ans:"X",ex:"되먹임은 투입, 과정, 산출의 모든 단계에서 언제든지 이루어질 수 있다."},
+{u:8,s:"생명기술 시스템",t:"객관식",q:"생명 기술의 활용 분야와 사례가 바르게 연결되지 않은 것은?",opts:["식량 문제 해결 - 형질 전환 작물","식량 문제 해결 - 수산 양식 기술 개발","질병과 장애 극복 - 유전자 치료","질병과 장애 극복 - 바이오 프린팅 장기","환경과 에너지 자원 문제 해결 - 단백질 의약품 개발"],ans:4,ex:"단백질 의약품 개발은 질병과 장애 극복 분야에 해당한다. 환경과 에너지 자원 문제 해결에는 생물 정화 기법, 친환경 소재 개발, 바이오 에너지 개발, 미생물 농약 개발 등이 있다."},
+{u:8,s:"생명기술 시스템",t:"객관식",q:"생명 기술의 4가지 원리와 설명이 바르게 연결된 것은?",opts:["유전자 재조합 : 두 종류의 세포를 융합하여 새로운 잡종 세포를 만드는 기술 (예: 포마토)","세포 융합 : 생물체의 일부 유전자를 잘라내고 다른 생물체의 유용한 유전자를 결합하는 기술","조직 배양 : 복제하려는 생물의 체세포에서 핵을 채취해 대리모 자궁에 착상시키는 기술","핵 이식 : 생물체의 세포나 조직 일부를 떼어 내어 영양 배지에서 증식시키는 기술","유전자 재조합 : 생물체의 일부 유전자를 잘라내고 다른 생물체의 유용한 유전자를 결합하는 기술 (예: 잘 무르지 않는 토마토)"],ans:4,ex:"유전자 재조합: 유전자 잘라내고 유용한 유전자 결합(예: 수온에 잘 얼지 않는 토마토). 세포 융합: 두 세포 합쳐서 잡종 세포(예: 포마토, 오레타치). 조직 배양: 영양 배지에서 증식(예: 산삼 대량 생산). 핵 이식: 체세포 핵 채취 후 대리모 착상(예: 복제 양 돌리)."},
+{u:8,s:"생명기술 시스템",t:"객관식",q:"DNA에 대한 설명으로 옳은 것은?",opts:["DNA는 세포의 세포질에 위치한다","DNA는 단백질로만 구성되어 있다","DNA는 생물체의 유전자의 본체로, 세포 분열이 일어날 때 막대 모양의 염색체를 형성한다","DNA는 세포 분열이 일어나지 않을 때 막대 모양의 염색체 형태를 유지한다","DNA는 모든 생물에서 동일한 구조를 가진다"],ans:2,ex:"DNA는 세포 중앙의 핵 속에 있는 유전자의 본체이다. 세포 분열이 일어나지 않을 때는 염색사 형태로 풀어져 있다가, 세포 분열이 일어날 때 막대 모양의 염색체를 형성한다."},
+{u:8,s:"생명기술 시스템",t:"객관식",q:"줄기세포에 대한 설명으로 옳은 것은?",opts:["줄기세포는 이미 특정 세포로 분화가 완료된 세포이다","줄기세포는 특정 한 종류의 세포로만 분화할 수 있다","줄기세포는 특정한 세포로 분화가 진행되지 않고 있다가, 필요할 경우 몸을 구성하는 모든 종류의 세포로 분화할 가능성을 지닌 세포이다","줄기세포는 이미 모든 분화가 끝나서 더 이상 변화하지 않는다","줄기세포는 오직 골수에서만 발견된다"],ans:2,ex:"줄기세포는 특정한 세포로 분화가 진행되지 않고 있다가, 필요할 경우 몸을 구성하는 모든 종류의 세포로 분화할 가능성을 지닌 세포이다."},
+// ── 9단원 ──
+{u:9,s:"적정기술",t:"객관식",q:"적정 기술의 조건으로 옳지 않은 것은?",opts:["전문 지식이 없어도 사용자가 이용할 수 있어야 한다","현지 기술과 노동력을 활용하고 가능하면 현지 재료를 사용한다","현지에서 제품의 유지 및 보수가 가능해야 한다","투자 비용을 최소화하고 재생 가능한 에너지 자원을 활용한다","항상 최첨단 기술을 사용해야 하며 높은 비용이 들어도 무방하다"],ans:4,ex:"적정 기술은 최첨단 기술이 아니더라도 해당 지역 사람들의 직접적인 필요를 충족시키고 삶의 환경을 개선해 줄 수 있는 기술이다."},
+{u:9,s:"적정기술",t:"객관식",q:"적정 기술 사례와 설명이 바르게 연결된 것은?",opts:["재활용 페트병 전구 - 채광이 되지 않는 어두운 집에 설치하는 전구로 55W만큼의 빛을 내며 전기가 불필요하다","항아리 속의 항아리 냉장고 - 전기를 이용하여 과일과 채소를 신선하게 보관하는 장치","종이 현미경 폴드스코프 - 전자 현미경으로 대장균이나 기생충을 조기에 식별하는 기기","자동차 부품 인큐베이터 - 고가의 첨단 부품으로 제작한 인큐베이터","자전거를 이용한 탈곡기 - 전기나 연료가 반드시 필요한 장치"],ans:0,ex:"재활용 페트병 전구는 채광이 되지 않는 어두운 집과 전기가 없는 지역에 설치하는 전구로 55W만큼의 빛을 낸다. 페트병을 재활용하고 전기를 사용하지 않으므로 환경도 보호할 수 있다."},
+{u:9,s:"지속가능발전",t:"객관식",q:"지속 가능 발전의 3가지 요소와 내용이 바르게 연결된 것은?",opts:["사회 - 생태계와 환경을 훼손하지 않으면서 지속적으로 발전할 수 있도록 경제를 개발","환경 - 자연과 조화를 이루고 건강하고 생산적인 삶을 지향","경제 - 후손을 생각하고 현세대도 쾌적하게 살기 위한 깨끗한 환경을 만든다","사회 - 자연과 조화를 이룬 건강하고 생산적인 삶 / 환경 - 깨끗한 환경 / 경제 - 생태계를 훼손하지 않는 경제 개발","사회 - 경제 개발 우선 / 환경 - 자연 보호 / 경제 - 복지 증진"],ans:3,ex:"지속 가능 발전의 3가지 요소: 사회(자연과 조화를 이룬 건강하고 생산적인 삶 지향), 환경(후손을 생각하고 현세대도 쾌적하게 살기 위한 깨끗한 환경), 경제(생태계와 환경을 훼손하지 않으면서 지속적으로 발전할 수 있도록 경제를 개발)."},
+{u:9,s:"지속가능발전",t:"OX",q:"초기의 적정 기술은 제3세계 빈곤 지역만을 대상으로 하였으나, 현대의 적정 기술은 귀농인, 장애인 등 소외된 계층을 위한 기술로도 범위가 확대되었다.",ans:"O",ex:"초기의 적정 기술은 제3세계 빈곤 지역 공동체를 대상으로 하였으나, 현대에는 귀농인, 장애인, 소외 계층 등을 위한 기술로도 범위가 넓어졌다."},
+{u:9,s:"지속가능발전",t:"객관식",q:"세계의 지속 가능 발전 사례와 국가, 특징이 바르게 연결된 것은?",opts:["독일 프라이부르크 - 지붕의 수동 환기 시스템이 실내 온도 17도 이상 유지, 빗물·오수 재사용","영국 베드제드 - 지역 주민들이 지역 에너지 문제 대안을 찾고 탄소 제로 도시를 목표로 함","한국 광주 - 지역 주민들이 쇠퇴하는 도시를 재건하기 위해 자원봉사자로 참여","미국 채터누가 - 국내 최초로 태양광 발전 시설을 신효천 주택 단지에 공동으로 설치","영국 베드제드 - 지붕의 수동 환기 시스템으로 실내 온도 17도 이상 유지, 빗물·오수 필터 정화 후 재사용, 공동 차량제 도입"],ans:4,ex:"영국 베드제드: 수동 환기 시스템으로 실내 17도 이상 유지, 빗물·오수 재사용, 공동 차량제 도입. 독일 프라이부르크: 탄소 제로 도시 목표, 자전거·버스·트램 구축. 한국 광주: 태양광 발전 시설 공동 설치. 미국 채터누가: 자원봉사로 도시 재건, 공장 배출 가스 필터 의무 설치."}
+];
+
+const UNIT_DEFS=[
+  {id:1,num:'1단원',name:'가족 관계의 이해'},
+  {id:3,num:'3단원',name:'폭력 예방과 식생활 안전'},
+  {id:4,num:'4단원',name:'생애 설계와 진로 탐색'},
+  {id:8,num:'8단원',name:'생명 기술의 세계'},
+  {id:9,num:'9단원',name:'지속 가능 발전의 이해'},
+];
+const selected=new Set();
+let Q=[],cur=0,score=0,answered=[];
+let savedWrongs=[];
+
+function buildHome(){
+  const grid=document.getElementById('unit-grid');
+  grid.innerHTML='';
+
+  const allCard=document.createElement('div');
+  allCard.className='unit-card unit-all';allCard.id='card-all';
+  allCard.innerHTML=`<div class="unit-num">전체</div><div class="unit-name">전체 단원</div><div class="unit-count">문제 ${ALL_Q.length}개</div><div class="check-mark"></div>`;
+  allCard.onclick=()=>toggleAll();grid.appendChild(allCard);
+
+  UNIT_DEFS.forEach(u=>{
+    const cnt=ALL_Q.filter(q=>q.u===u.id).length;
+    const card=document.createElement('div');
+    card.className='unit-card';card.id='card-'+u.id;
+    card.innerHTML=`<div class="unit-num">${u.num}</div><div class="unit-name">${u.name}</div><div class="unit-count">문제 ${cnt}개</div><div class="check-mark"></div>`;
+    card.onclick=()=>toggleUnit(u.id);grid.appendChild(card);
+  });
+
+  const wCount=savedWrongs.length;
+  const wrongCard=document.createElement('div');
+  wrongCard.id='card-wrong';
+  wrongCard.className='unit-card wrong-card'+(wCount===0?' disabled-card':'');
+  wrongCard.innerHTML=`<div class="unit-num">오답</div><div class="unit-name">틀린 문제 다시 풀기</div><div class="unit-count">${wCount===0?'저장된 문제 없음':'문제 '+wCount+'개'}</div>`;
+  wrongCard.onclick=()=>{if(wCount>0)startWrongQuiz();};
+  grid.appendChild(wrongCard);
+}
+function toggleAll(){
+  if(selected.size===UNIT_DEFS.length)selected.clear();
+  else UNIT_DEFS.forEach(u=>selected.add(u.id));
+  updateUI();
+}
+function toggleUnit(id){
+  if(selected.has(id))selected.delete(id);else selected.add(id);
+  updateUI();
+}
+function updateUI(){
+  document.getElementById('card-all').classList.toggle('selected',selected.size===UNIT_DEFS.length);
+  UNIT_DEFS.forEach(u=>document.getElementById('card-'+u.id).classList.toggle('selected',selected.has(u.id)));
+  const total=ALL_Q.filter(q=>selected.has(q.u)).length;
+  const btn=document.getElementById('btn-start');
+  btn.disabled=selected.size===0;
+  btn.textContent=selected.size===0?'단원을 선택하세요':`시작하기 (${total}문제)`;
+}
+buildHome();updateUI();
+function startQuiz(){
+  Q=ALL_Q.filter(q=>selected.has(q.u));
+  if(!Q.length)return;
+  cur=0;score=0;answered=new Array(Q.length).fill(null);
+  document.getElementById('home').style.display='none';
+  document.getElementById('quiz').style.display='flex';
+  document.getElementById('btn-prev').style.display='';
+  document.getElementById('btn-next').style.display='';
+  render();
+}
+function startWrongQuiz(){
+  Q=[...savedWrongs];
+  if(!Q.length)return;
+  cur=0;score=0;answered=new Array(Q.length).fill(null);
+  document.getElementById('home').style.display='none';
+  document.getElementById('quiz').style.display='flex';
+  document.getElementById('btn-prev').style.display='';
+  document.getElementById('btn-next').style.display='';
+  render();
+}
+function goHome(){
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('home').style.display='flex';
+  buildHome();updateUI();
+}
+function render(){
+  const q=Q[cur];
+  const pct=Math.round(((cur+1)/Q.length)*100);
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('ptext').textContent=(cur+1)+' / '+Q.length;
+  document.getElementById('sbadge').textContent=score+'점';
+  document.getElementById('btn-prev').disabled=cur===0;
+  document.getElementById('btn-next').textContent=cur===Q.length-1?'결과 보기 →':'다음 →';
+  let sectionLabel='';
+  if(cur===0||q.s!==Q[cur-1].s)sectionLabel=`<div class="section-divider">▸ ${q.s}</div>`;
+  const a=answered[cur];
+  let optsHtml='';
+  if(q.t==='OX'){
+    const ox=v=>{
+      let cls='ox-btn';
+      if(a!==null)cls+=(a===v?(q.ans===v?' correct':' wrong'):' disabled');
+      return `<button class="${cls}" onclick="pick('${v}')" ${a!==null?'disabled':''}>${v}</button>`;
+    };
+    optsHtml=`<div class="ox-row">${ox('O')}${ox('X')}</div>`;
+  }else{
+    optsHtml='<div class="options">'+q.opts.map((o,i)=>{
+      let cls='opt';
+      if(a!==null){
+        if(i===q.ans)cls='opt correct disabled';
+        else if(i===a)cls='opt wrong disabled';
+        else cls='opt disabled';
+      }
+      return `<button class="${cls}" onclick="pick(${i})" ${a!==null?'disabled':''}><span class="num">${['①','②','③','④','⑤'][i]}</span>${o}</button>`;
+    }).join('')+'</div>';
+  }
+  const correct=a!==null&&(q.t==='OX'?a===q.ans:a===q.ans);
+  const fb=a!==null?`<div class="feedback show ${correct?'ok':'no'}"><strong>${correct?'✓ 정답!':'✗ 오답'}</strong>&nbsp;${q.ex}</div>`:'';
+  document.getElementById('quiz-area').innerHTML=sectionLabel+`<div class="q-card"><div class="q-meta"><span class="q-type-badge">${q.t}</span>Q${cur+1}</div><div class="q-text">${q.q.replace(/\n/g,'<br>')}</div>${optsHtml}${fb}</div>`;
+  document.getElementById('quiz-scroll').scrollTop=0;
+}
+function pick(v){
+  if(answered[cur]!==null)return;
+  answered[cur]=v;
+  if(Q[cur].t==='OX'?v===Q[cur].ans:v===Q[cur].ans)score++;
+  render();
+}
+function go(d){
+  if(cur+d>=Q.length){showResult();return;}
+  if(cur+d<0)return;
+  cur+=d;render();
+}
+function showResult(){
+  const total=Q.length,pct=Math.round((score/total)*100);
+  const msg=pct>=90?'완벽해요! 시험 준비 끝! 🎉':pct>=70?'잘 했어요! 틀린 문제 다시 확인해봐요.':pct>=50?'조금 더 공부가 필요해요. 오답 꼭 복습!':'강조 내용 다시 정리하고 재도전해봐요! 💪';
+  const wrongs=answered.map((a,i)=>({a,i})).filter(({a,i})=>a!==null&&(Q[i].t==='OX'?a!==Q[i].ans:a!==Q[i].ans));
+  const wrongQs=wrongs.map(({i})=>Q[i]);
+  const wrongHtml=wrongs.length
+    ?`<div class="wrong-review"><div style="font-size:13px;color:#5a7a78;font-weight:600;margin-bottom:8px">틀린 문제 (${wrongs.length}개)</div>`+wrongs.map(({i})=>`<div class="wrong-item"><div class="wrong-q">Q${i+1}. ${Q[i].q.slice(0,60)}${Q[i].q.length>60?'…':''}</div><div class="wrong-ans">정답: <span>${Q[i].t==='OX'?Q[i].ans:Q[i].opts[Q[i].ans]}</span></div></div>`).join('')+'</div>'
+    :'';
+  const saveRow=wrongs.length?`<label class="save-row"><input type="checkbox" class="save-checkbox" id="chk-save" checked><span class="save-label">틀린 문제 저장하기 (${wrongs.length}개)</span></label>`:'';
+  document.getElementById('quiz-area').innerHTML=`<div class="result-card"><div class="result-label">최종 점수</div><div class="result-score">${score}<span style="font-size:24px;color:#7a9a98"> / ${total}</span></div><div style="font-size:13px;color:#7a9a98;margin-bottom:4px">${pct}점</div><div class="result-msg">${msg}</div>${saveRow}<button class="btn-result-main" onclick="saveAndGoHome(${JSON.stringify(wrongQs).replace(/"/g,'&quot;')})">홈으로</button><button class="btn-result-sub" onclick="restartSame()">다시 풀기</button>${wrongHtml}</div>`;
+  document.getElementById('btn-prev').style.display='none';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('quiz-scroll').scrollTop=0;
+}
+function saveAndGoHome(wrongQs){
+  const chk=document.getElementById('chk-save');
+  if(chk&&chk.checked&&wrongQs.length>0){
+    savedWrongs=wrongQs;
+  }
+  goHome();
+}
+function restartSame(){
+  cur=0;score=0;answered=new Array(Q.length).fill(null);
+  document.getElementById('btn-prev').style.display='';
+  document.getElementById('btn-next').style.display='';
+  render();
+}
+</script>
+</body>
+</html>
